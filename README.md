@@ -27,3 +27,4 @@ npm run dev
 ## 演示图
 
 <img width="500px" src="https://github.com/chinaitman/ws-chat-room/blob/main/QQ%E6%88%AA%E5%9B%BE20240510232336.png" />
+<img width="500px" src="https://github.com/chinaitman/ws-chat-room/blob/main/QQ%E6%88%AA%E5%9B%BE20240510232435.png" />
