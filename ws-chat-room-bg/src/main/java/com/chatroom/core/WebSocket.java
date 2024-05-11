@@ -53,6 +53,19 @@ public class WebSocket {
         onlineNum.incrementAndGet();
         // 保存当前用户名
         this.userName = userName;
+        // 发送给所有用户谁上线了
+        sendMessageAll(JSONUtil.toJsonStr(buildMessageData(MessageTypeConsts.ONLINE, null)));
+        log.info("【websocket消息】有新的连接, 总数：{}", onlineNum.get());
+    }
+
+    /**
+     * 组装消息体
+     * @param messageType 消息类型
+     * @param message 消息文本
+     * @return
+     * @throws IOException
+     */
+    private Map<String, Object> buildMessageData(int messageType, String message) throws IOException {
         // 获得所有的在线用户
         Set<String> userLists = getOnlineUsers();
         // 将所有信息包装好传到客户端
@@ -60,14 +73,14 @@ public class WebSocket {
         // 所有用户列表
         dataMap.put("onlineUsers", userLists);
         // 消息类型为上线
-        dataMap.put("messageType", MessageTypeConsts.ONLINE);
+        dataMap.put("messageType", messageType);
         // 上线用户的用户名
         dataMap.put("userName", userName);
         // 在线人数
         dataMap.put("onlineNum", onlineNum.get());
-        // 发送给所有用户谁上线了
-        sendMessageAll(JSONUtil.toJsonStr(dataMap));
-        log.info("【websocket消息】有新的连接, 总数：{}", onlineNum.get());
+        // 发送的消息
+        dataMap.put("textMessage", message);
+        return dataMap;
     }
 
     /**
@@ -81,20 +94,8 @@ public class WebSocket {
         webSocketSet.remove(this);
         // 在线用户数减少
         onlineNum.decrementAndGet();
-        // 获得所有的在线用户
-        Set<String> userLists = getOnlineUsers();
-        // 将所有信息包装好传到客户端
-        Map<String, Object> dataMap = new HashMap<>();
-        // 消息类型为下线
-        dataMap.put("messageType", MessageTypeConsts.OFFLINE);
-        // 所有用户列表
-        dataMap.put("onlineUsers", userLists);
-        // 下线用户的用户名
-        dataMap.put("userName", this.userName);
-        // 在线人数
-        dataMap.put("onlineNum", onlineNum.get());
         // 发送给所有用户谁下线了
-        sendMessageAll(JSONUtil.toJsonStr(dataMap));
+        sendMessageAll(JSONUtil.toJsonStr(buildMessageData(MessageTypeConsts.OFFLINE, null)));
         log.info("【websocket消息】连接断开, 总数：{}", webSocketSet.size());
     }
 
@@ -114,41 +115,17 @@ public class WebSocket {
         String userName = jsonObject.getStr("userName");
         String type = jsonObject.getStr("type");
         String toUserName = jsonObject.getStr("toUserName");
-        // 获得所有的在线用户
-        Set<String> userLists = getOnlineUsers();
-        // 将所有信息包装好传到客户端
-        Map<String, Object> dataMap = new HashMap<>();
         // 群发
         if (type.equals("群发")) {
-            // 消息类型为普通消息
-            dataMap.put("messageType", MessageTypeConsts.SIMPLE);
-            // 所有用户列表
-            dataMap.put("onlineUsers", userLists);
-            // 发送消息的用户名
-            dataMap.put("userName", userName);
-            // 在线人数
-            dataMap.put("onlineNum", onlineNum.get());
-            // 发送的消息
-            dataMap.put("textMessage", textMessage);
             // 发送信息给所有人
-            sendMessageAll(JSONUtil.toJsonStr(dataMap));
+            sendMessageAll(JSONUtil.toJsonStr(buildMessageData(MessageTypeConsts.SIMPLE, textMessage)));
         }
         //私发
         else {
-            // 消息类型为普通消息
-            dataMap.put("messageType", MessageTypeConsts.SIMPLE);
-            // 所有用户列表
-            dataMap.put("onlineUsers", userLists);
-            // 发送消息的用户名
-            dataMap.put("userName", userName);
-            // 在线人数
-            dataMap.put("onlineNum", onlineNum.get());
-            // 发送的消息
-            dataMap.put("textMessage", textMessage);
             // 发送信息给指定的人
-            sendMessageTo(JSONUtil.toJsonStr(dataMap), toUserName);
+            sendMessageTo(JSONUtil.toJsonStr(buildMessageData(MessageTypeConsts.SIMPLE, textMessage)), toUserName);
             // 发送给自己
-            sendMessageTo(JSONUtil.toJsonStr(dataMap), userName);
+            sendMessageTo(JSONUtil.toJsonStr(buildMessageData(MessageTypeConsts.SIMPLE, textMessage)), userName);
         }
     }
 
