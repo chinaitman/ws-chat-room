@@ -75,6 +75,8 @@ export default {
         this.onlineUsers = data.onlineUsers;
         if(data.messageType==1) {
           this.content = old + "\n" + data.userName + " 进入聊天室";
+        } else if(data.messageType==2) {
+          this.content = old + "\n" + data.userName + " 离开聊天室";
         } else if(data.messageType==3) {
           this.content = old + "\n" + data.userName + "：" + data.textMessage;
         }
